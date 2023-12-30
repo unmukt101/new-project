@@ -1,38 +1,48 @@
-def identify_flower(image):
-    # Enhanced identification logic incorporating more flower types
-    # Example using a larger set of flowers
-    # Replace this with actual logic or model
-    if is_sunflower(image):
-        return "Sunflower"
-    elif is_rose(image):
-        return "Rose"
-    elif is_lily(image):
-        return "Lily"
-    elif is_tulip(image):
-        return "Tulip"
-    else:
-        return "Unknown"
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import PIL
+import tensorflow as tf
 
-def is_sunflower(image):
-    # Check if the image represents a sunflower
-    # Replace this with actual image recognition logic
-    # Example placeholder logic
-    return True
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.models import Sequential
 
-def is_rose(image):
-    # Check if the image represents a rose
-    # Replace this with actual image recognition logic
-    # Example placeholder logic
-    return False
+import pathlib
+dataset_url = "https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz"
+data_dir = tf.keras.utils.get_file('flower_photos', origin=dataset_url, untar=True)
+data_dir = pathlib.Path(data_dir)
+roses = list(data_dir.glob('roses/*'))
+print(roses[0])
+PIL.Image.open(str(roses[0]))
+img_height,img_width=180,180
+batch_size=32
+train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+  data_dir,
+  validation_split=0.2,
+  subset="training",
+  seed=123,
+  image_size=(img_height, img_width),
+  batch_size=batch_size)
+val_ds = tf.keras.preprocessing.image_dataset_from_directory(
+  data_dir,
+  validation_split=0.2,
+  subset="validation",
+  seed=123,
+  image_size=(img_height, img_width),
+  batch_size=batch_size)
+num_classes = 5
 
-def is_lily(image):
-    # Check if the image represents a lily
-    # Replace this with actual image recognition logic
-    # Example placeholder logic
-    return False
-
-def is_tulip(image):
-    # Check if the image represents a tulip
-    # Replace this with actual image recognition logic
-    # Example placeholder logic
-    return False
+model = Sequential([
+  layers.experimental.preprocessing.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
+  layers.Conv2D(16, 3, padding='same', activation='relu'),
+  layers.MaxPooling2D(),
+  layers.Conv2D(32, 3, padding='same', activation='relu'),
+  layers.MaxPooling2D(),
+  layers.Conv2D(64, 3, padding='same', activation='relu'),
+  layers.MaxPooling2D(),
+  layers.Flatten(),
+  layers.Dense(128, activation='relu'),
+  layers.Dense(num_classes,activation='softmax')
+])
+     
